@@ -2,8 +2,6 @@
  * @flow
  */
 
-require('babel-polyfill');
-
 /**
  * Copyright (c) 2018, Esy contributors
  *
