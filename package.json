@@ -2,7 +2,7 @@
   "name": "create-esy-project",
   "version": "0.1.0",
   "description": "Esy project template",
-  "main": "index.js",
+  "main": "lib/index.js",
   "bin": {
     "create-esy-project": "./index.js"
   },
@@ -16,12 +16,27 @@
     "url": "https://github.com/esy-ocaml/create-esy-project/issues"
   },
   "devDependencies": {
-    "prettier": "^1.7.4"
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.24.1",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
+    "babel-plugin-transform-runtime": "^6.4.3",
+    "babel-preset-env": "^1.4.0",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-stage-0": "^6.0.0",
+    "babel-register": "^6.24.1",
+    "flow-bin": "^0.60.0",
+    "is-ci": "^1.0.10",
+    "prettier": "^1.7.4",
+    "raw-loader": "^0.5.1",
+    "webpack": "^3.8.1"
   },
   "dependencies": {
+    "babel-polyfill": "^6.23.0",
+    "cli-argparse": "^1.1.2",
     "chalk": "^2.1.0",
     "commander": "^2.9.0",
-    "fs-extra": "^1.0.0",
+    "fs-extra": "^3.0.1",
     "recursive-copy": "^2.0.8",
     "through2": "^2.0.3"
   }

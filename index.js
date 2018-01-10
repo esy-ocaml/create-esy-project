@@ -8,4 +8,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-require('./createEsyProject');
+var path = require('path');
+
+const root = path.dirname(__dirname);
+
+const node_modules = path.join(root, 'node_modules');
+
+require('babel-register')();
+
+require('./create-project.js');

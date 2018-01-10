@@ -1,16 +1,22 @@
 /**
+ * @flow
+ */
+
+require('babel-polyfill');
+
+/**
  * Copyright (c) 2018, Esy contributors
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-const chalk = require('chalk');
-const commander = require('commander');
-const copy = require('recursive-copy');
-const fs = require('fs-extra');
-const path = require('path');
-const through = require('through2');
+import chalk from 'chalk';
+import commander from 'commander';
+import copy from 'recursive-copy';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import through from 'through2';
 
 const packageJson = require('./package.json');
 
@@ -59,16 +65,13 @@ if (typeof projectName === 'undefined') {
 
 createProject(projectName, program);
 
-function createProject(name, program) {
+async function createProject(name, program) {
   const root = path.resolve(name);
   const appName = path.basename(root);
 
   const verbose = program.verbose;
 
   fs.ensureDirSync(name);
-  if (!isSafeToCreateProjectIn(root, name)) {
-    process.exit(1);
-  }
 
   console.log(`Creating a new esy project in ${chalk.green(root)}.`);
   console.log();
@@ -99,7 +102,10 @@ function createProject(name, program) {
     private: true,
   };
 
-  fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify(packageJson, null, 2));
+  await fs.writeFile(
+    path.join(root, 'package.json'),
+    JSON.stringify(packageJson, null, 2),
+  );
 
   const stubs = path.join(__dirname, 'stubs', 'jbuilder');
 
@@ -125,64 +131,31 @@ function createProject(name, program) {
     },
   };
 
-  return copyStubs(stubs, root, copyOptions).then(files => {
-    console.log();
-    console.log(`Success! Created ${appName} at ${root}`);
-    console.log('Inside that directory, you can run several commands:');
-    console.log();
-    console.log(chalk.cyan(`  esy install`));
-    console.log('    Installs all the dependencies.');
-    console.log();
-    console.log(chalk.cyan(`  esy build`));
-    console.log('    Builds the project and its dependencies.');
-    console.log();
-    console.log(chalk.cyan(`  esy x hello`));
-    console.log('    Runs the example executable.');
-    console.log();
-    console.log('We suggest that you begin by typing:');
-    console.log();
-    console.log(chalk.cyan('  cd'), appName);
-    console.log(`  ${chalk.cyan(`esy install`)}`);
-    console.log(`  ${chalk.cyan(`esy build`)}`);
-    console.log();
-    console.log('Happy hacking!');
-  });
+  const files = await copyStubs(stubs, root, copyOptions);
+
+  console.log();
+  console.log(`Success! Created ${appName} at ${root}`);
+  console.log('Inside your project directory, you can run several commands:');
+  console.log();
+  console.log(chalk.cyan(`  esy install`));
+  console.log('    Installs all the dependencies.');
+  console.log();
+  console.log(chalk.cyan(`  esy build`));
+  console.log('    Builds the project and its dependencies.');
+  console.log();
+  console.log(chalk.cyan(`  esy x hello`));
+  console.log('    Runs the example executable.');
+  console.log();
+  console.log('We suggest that you begin by typing:');
+  console.log();
+  console.log(`  ${chalk.cyan(`esy install`)}`);
+  console.log(`  ${chalk.cyan(`esy build`)}`);
+  console.log();
+  console.log('Happy hacking!');
 }
 
 function copyStubs(src, dest, options) {
   return copy(src, dest, options).catch(error => {
     throw error;
   });
-}
-
-function isSafeToCreateProjectIn(root, name) {
-  const validFiles = [
-    '.DS_Store',
-    'Thumbs.db',
-    '.git',
-    '.gitignore',
-    '.idea',
-    'README.md',
-    'LICENSE',
-    'web.iml',
-    '.hg',
-    '.hgignore',
-    '.hgcheck',
-  ];
-  console.log();
-
-  const conflicts = fs.readdirSync(root).filter(file => !validFiles.includes(file));
-  if (conflicts.length < 1) {
-    return true;
-  }
-
-  console.log(`The directory ${chalk.green(name)} contains files that could conflict:`);
-  console.log();
-  for (const file of conflicts) {
-    console.log(`  ${file}`);
-  }
-  console.log();
-  console.log('Either try using a new directory name, or remove the files listed above.');
-
-  return false;
 }
