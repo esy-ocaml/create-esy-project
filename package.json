@@ -1,6 +1,6 @@
 {
   "name": "create-esy-project",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Esy project template",
   "main": "lib/index.js",
   "bin": {
@@ -10,7 +10,13 @@
     "type": "git",
     "url": "git+https://github.com/esy-ocaml/create-esy-project.git"
   },
-  "keywords": ["esy", "ocaml", "reason", "starter", "template"],
+  "keywords": [
+    "esy",
+    "ocaml",
+    "reason",
+    "starter",
+    "template"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/esy-ocaml/create-esy-project/issues"
