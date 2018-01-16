@@ -17,13 +17,13 @@ module.exports = function(babel) {
           if (t.isStringLiteral(moduleNode)) {
             path.replaceWith(
               t.callExpression(t.identifier('require'), [
-                t.stringLiteral(`raw-loader!${moduleNode.value}`),
-              ]),
+                t.stringLiteral(`raw-loader!${moduleNode.value}`)
+              ])
             );
           }
         }
       }
-    },
+    }
   };
 
   function isFsReadFileSync(node) {
@@ -47,6 +47,6 @@ module.exports = function(babel) {
   }
 
   return {
-    visitor,
+    visitor
   };
 };
