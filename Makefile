@@ -51,7 +51,8 @@ ci:
 
 RELEASE_ROOT = dist
 RELEASE_FILES = \
-	index.js
+	index.js \
+	package.json
 
 build-release:
 	@rm -rf $(RELEASE_ROOT)

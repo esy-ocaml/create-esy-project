@@ -11,32 +11,28 @@
 
 import chalk from 'chalk';
 import commander from 'commander';
-import copy from 'recursive-copy';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import through from 'through2';
-
-const packageJson = require('./package.json');
+import {getProjectOptions, copyStubs} from './util';
 
 let projectName;
 
-const program = new commander.Command(packageJson.name).version(packageJson.version);
+const packageJson = require('./package.json');
+const program = new commander.Command(packageJson.name);
 
-program.arguments('<project-name>');
-program.usage(`${chalk.green('<project-name>')} [options]`);
-program.action(name => {
-  projectName = name;
-});
+program
+  .version(packageJson.version)
+  .usage(`[options] ${chalk.green('<project-name>')}`)
+  .arguments('<project-name>')
+  .action(name => {
+    projectName = name;
+  });
 
-program.option('--license <license>', 'License', 'MIT');
-program.option(
-  '--description <description>',
-  'Project description',
-  'OCaml workflow with Esy',
-);
-program.option('--ocaml-version <version>', 'OCaml version', '~4.6.000');
-
-program.option('--verbose', 'print additional logs');
+program
+  .option('-y, --yes', 'disable interactivity and use defaults')
+  .option('--description <description>', 'Project description', 'OCaml workflow with Esy')
+  .option('--license <license>', 'License', 'MIT')
+  .option('--ocaml-version <version>', 'OCaml version', '~4.6.000');
 
 program.on('--help', () => {
   console.log(`    Only ${chalk.green('<project-name>')} is required.`);
@@ -59,26 +55,31 @@ if (typeof projectName === 'undefined') {
   console.log();
   console.log(`Run ${chalk.cyan(`${program.name()} --help`)} to see all options.`);
   process.exit(1);
+} else {
+  createProject(projectName, program).catch(error => {
+    console.error(error);
+    process.exit(1);
+  });
 }
-
-createProject(projectName, program);
 
 async function createProject(name, program) {
   const root = path.resolve(name);
   const appName = path.basename(root);
 
-  const verbose = program.verbose;
-
   fs.ensureDirSync(name);
 
+  console.log();
   console.log(`Creating a new esy project in ${chalk.green(root)}.`);
   console.log();
 
+  const opts = await getProjectOptions(root, program);
+
   const packageJson = {
-    name: appName,
-    version: '0.1.0',
-    description: 'OCaml workflow with Esy',
-    license: program.license,
+    name: opts.name,
+    version: opts.version,
+    description: opts.description,
+    author: opts.author,
+    license: opts.license,
     esy: {
       build: ['jbuilder build'],
       install: ['esy-installer'],
@@ -91,11 +92,11 @@ async function createProject(name, program) {
       '@opam/lwt': '^3.1.0',
     },
     peerDependencies: {
-      ocaml: program.ocamlVersion,
+      ocaml: opts.ocaml,
     },
     devDependencies: {
       '@opam/merlin': '^3.0.5',
-      ocaml: program.ocamlVersion,
+      ocaml: opts.ocaml,
     },
     private: true,
   };
@@ -111,25 +112,7 @@ async function createProject(name, program) {
     '%project_name%': appName,
   };
 
-  const replacePlacholder = ph => {
-    return placeholders[ph] || ph;
-  };
-
-  const copyOptions = {
-    overwrite: true,
-    dot: true,
-    rename: function(filepath) {
-      return filepath.replace(/%\w+%/g, replacePlacholder);
-    },
-    transform: function(src, dest, stats) {
-      return through(function(chunk, enc, done) {
-        var output = chunk.toString().replace(/%\w+%/g, replacePlacholder);
-        done(null, output);
-      });
-    },
-  };
-
-  const files = await copyStubs(stubs, root, copyOptions);
+  await copyStubs(stubs, root, placeholders);
 
   console.log();
   console.log(`Success! Created ${appName} at ${root}`);
@@ -150,10 +133,4 @@ async function createProject(name, program) {
   console.log(`  ${chalk.cyan(`esy build`)}`);
   console.log();
   console.log('Happy hacking!');
-}
-
-function copyStubs(src, dest, options) {
-  return copy(src, dest, options).catch(error => {
-    throw error;
-  });
 }
